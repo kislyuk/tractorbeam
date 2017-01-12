@@ -1,11 +1,11 @@
-DDBCLI: A DynamoDB command line interface with JSON I/O
-=======================================================
+Tractor Beam: File I/O staging for JSON documents with Amazon S3 URLs
+=====================================================================
 
 Installation
 ------------
 ::
 
-    pip install ddbcli
+    pip install tractorbeam
 
 Synopsis
 --------
@@ -14,11 +14,11 @@ Use ``aws configure`` to set up your AWS command line environment.
 
 .. code-block:: bash
 
-    ddb get TABLE_NAME HASH_KEY
-    DYNAMODB_TABLE=mytable ddb get HASH_KEY
-
-    ddb put mytable '{"key": "foo", "data": "xyz"}' '{"key": "bar", "data": "xyz"}'
-    ddb scan mytable
+    $ echo '{"input1": "s3://mybucket/path/to/myfile.bam"}' | tractor down --strip-components 1
+    {"input1": "file:///cwd/path/to/myfile.bam"}
+    
+    $ echo '{"input2": "file:///path/to/myfile.bam"}' | tractor up s3://mybucket/prefix/ --strip-components 0
+    {"input2": "s3:///mybucket/prefix/path/to/myfile.bam"}
 
 Authors
 -------
@@ -26,26 +26,26 @@ Authors
 
 Links
 -----
-* `Project home page (GitHub) <https://github.com/XML-Security/ddbcli>`_
-* `Documentation (Read the Docs) <https://ddbcli.readthedocs.io/en/latest/>`_
-* `Package distribution (PyPI) <https://pypi.python.org/pypi/ddbcli>`_
-* `Change log <https://github.com/XML-Security/ddbcli/blob/master/Changes.rst>`_
+* `Project home page (GitHub) <https://github.com/kislyuk/tractorbeam>`_
+* `Documentation (Read the Docs) <https://tractorbeam.readthedocs.io/en/latest/>`_
+* `Package distribution (PyPI) <https://pypi.python.org/pypi/tractorbeam>`_
+* `Change log <https://github.com/kislyuk/tractorbeam/blob/master/Changes.rst>`_
 
 Bugs
 ~~~~
-Please report bugs, issues, feature requests, etc. on `GitHub <https://github.com/XML-Security/ddbcli/issues>`_.
+Please report bugs, issues, feature requests, etc. on `GitHub <https://github.com/kislyuk/tractorbeam/issues>`_.
 
 License
 -------
 Licensed under the terms of the `Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>`_.
 
-.. image:: https://img.shields.io/travis/XML-Security/ddbcli.svg
-        :target: https://travis-ci.org/XML-Security/ddbcli
-.. image:: https://codecov.io/github/XML-Security/ddbcli/coverage.svg?branch=master
-        :target: https://codecov.io/github/XML-Security/ddbcli?branch=master
-.. image:: https://img.shields.io/pypi/v/ddbcli.svg
-        :target: https://pypi.python.org/pypi/ddbcli
-.. image:: https://img.shields.io/pypi/l/ddbcli.svg
-        :target: https://pypi.python.org/pypi/ddbcli
-.. image:: https://readthedocs.org/projects/ddbcli/badge/?version=latest
-        :target: https://ddbcli.readthedocs.io/
+.. image:: https://img.shields.io/travis/kislyuk/tractorbeam.svg
+        :target: https://travis-ci.org/kislyuk/tractorbeam
+.. image:: https://codecov.io/github/kislyuk/tractorbeam/coverage.svg?branch=master
+        :target: https://codecov.io/github/kislyuk/tractorbeam?branch=master
+.. image:: https://img.shields.io/pypi/v/tractorbeam.svg
+        :target: https://pypi.python.org/pypi/tractorbeam
+.. image:: https://img.shields.io/pypi/l/tractorbeam.svg
+        :target: https://pypi.python.org/pypi/tractorbeam
+.. image:: https://readthedocs.org/projects/tractorbeam/badge/?version=latest
+        :target: https://tractorbeam.readthedocs.io/

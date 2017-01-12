@@ -1,16 +1,17 @@
 """
-ddbcli: DynamoDB Command Line Interface
+Tractor Beam: File I/O staging for JSON documents with Amazon S3 URLs
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os, sys, argparse, logging, shutil, json, datetime, traceback, errno
+import os, sys, argparse, logging, json, datetime, traceback, errno
 import boto3
 from botocore.exceptions import NoRegionError
 from tweak import Config
+from .compat import str, urlparse
 
 logger = logging.getLogger(__name__)
-config = Config("ddbcli")
+config = Config("tractorbeam")
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--log-level", type=logger.setLevel,
                     help=str([logging.getLevelName(i) for i in range(0, 60, 10)]),
@@ -19,7 +20,6 @@ subparsers = parser.add_subparsers()
 
 def register_parser(function, **add_parser_args):
     subparser = subparsers.add_parser(function.__name__, **add_parser_args)
-    subparser.add_argument("table")
     subparser.set_defaults(entry_point=function)
     if subparser.description is None:
         subparser.description = add_parser_args.get("help", function.__doc__)
@@ -28,8 +28,6 @@ def register_parser(function, **add_parser_args):
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
-    if "DYNAMODB_TABLE" in os.environ:
-        args.insert(1, os.environ["DYNAMODB_TABLE"])
     parsed_args = parser.parse_args(args=args)
     try:
         result = parsed_args.entry_point(parsed_args)
@@ -59,40 +57,46 @@ def main(args=None):
             del result["ResponseMetadata"]
         print(json.dumps(result, indent=2, default=lambda x: str(x)))
 
-def get_key_schema(table):
-    if "key_schema" not in config:
-        config.key_schema = {}
-    if table.name not in config.key_schema:
-        config.key_schema[table.name] = table.key_schema
-    return config.key_schema[table.name]
+def visit(node, prefix, transform, **kwargs):
+    if isinstance(node, list):
+        for i, value in enumerate(node):
+            node[i] = visit(value, prefix, transform, **kwargs)
+    elif isinstance(node, dict):
+        for key, value in node.items():
+            node[key] = visit(value, prefix, transform, **kwargs)
+    else:
+        if isinstance(node, str) and node.startswith(prefix):
+            node = transform(node, **kwargs)
+    return node
 
-def get(args):
-    table = boto3.resource("dynamodb").Table(args.table)
-    key_attr_name = get_key_schema(table)[0]["AttributeName"]
-    return table.get_item(Key={key_attr_name: args.key[0]})["Item"]
+s3 = boto3.resource("s3")
 
-parser_get = register_parser(get)
-parser_get.add_argument("key", nargs="*")
+def process_s3_url(url, strip=0):
+    url = urlparse(url)
+    path = url.path.lstrip("/")
+    dest = os.path.join(os.getcwd(), path)
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    s3.Object(url.netloc, path).download_file(dest)
+    return "file://" + dest
 
-def put(args):
-    table = boto3.resource("dynamodb").Table(args.table)
-    with table.batch_writer() as batch:
-        for item in args.items:
-            batch.put_item(Item=item)
+def down(args):
+    data = json.load(sys.stdin)
+    return visit(data, "s3://", process_s3_url, strip=args.strip_components)
 
-parser_put = register_parser(put)
-parser_put.add_argument("items", nargs="*", type=json.loads)
+parser_down = register_parser(down)
+parser_down.add_argument("--strip-components", type=int)
 
-def paginate(boto3_paginator, *args, **kwargs):
-    for page in boto3_paginator.paginate(*args, **kwargs):
-        for result_key in boto3_paginator.result_keys:
-            for value in page.get(result_key.parsed.get("value"), []):
-                yield value
+def process_file_url(url, dest_base, strip=0):
+    url = urlparse(url)
+    dest_base = urlparse(dest_base)
+    dest = os.path.join(dest_base.path.lstrip("/"), url.path.lstrip("/"))
+    s3.Object(dest_base.netloc, dest).upload_file(url.path)
+    return "s3://" + os.path.join(dest_base.netloc, dest)
 
-def scan(args):
-    table = boto3.resource("dynamodb").Table(args.table)
-    return table.scan()["Items"]
+def up(args):
+    data = json.load(sys.stdin)
+    return visit(data, "file://", process_file_url, dest_base=args.dest_s3_base_url, strip=args.strip_components)
 
-parser_scan = register_parser(scan)
-
-main()
+parser_up = register_parser(up)
+parser_up.add_argument("dest_s3_base_url")
+parser_up.add_argument("--strip-components", type=int)

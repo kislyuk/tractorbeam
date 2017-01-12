@@ -4,20 +4,21 @@ import os, glob
 from setuptools import setup, find_packages
 
 setup(
-    name="ddbcli",
+    name="tractorbeam",
     version="0.0.1",
-    url="https://github.com/kislyuk/ddbcli",
+    url="https://github.com/kislyuk/tractorbeam",
     license="Apache Software License",
     author="Andrey Kislyuk",
     author_email="kislyuk@gmail.com",
-    description="A DynamoDB Command Line Interface with JSON I/O",
+    description="Downloads S3 links in JSON to local files, and vice versa",
     long_description=open("README.rst").read(),
     install_requires=[
         "setuptools",
-        "boto3 >= 1.4.2, < 2",
+        "tweak",
         "awscli"
     ],
     packages=find_packages(exclude=["test"]),
+    scripts=glob.glob("scripts/*"),
     include_package_data=True,
     platforms=["MacOS X", "Posix"],
     test_suite="test",
