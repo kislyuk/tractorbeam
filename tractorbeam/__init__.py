@@ -15,7 +15,7 @@ config = Config("tractorbeam")
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--log-level", type=logger.setLevel,
                     help=str([logging.getLevelName(i) for i in range(0, 60, 10)]),
-                    default=logging.WARN)
+                    default=logging.INFO)
 parser.set_defaults(entry_point=lambda args: parser.print_help())
 subparsers = parser.add_subparsers()
 
@@ -78,6 +78,7 @@ def process_s3_url(url, strip):
     path = url.path.lstrip("/").split("/", strip)[strip:]
     dest = os.path.join(os.getcwd(), *path)
     os.makedirs(os.path.dirname(dest), exist_ok=True)
+    logger.info("Downloading %s to %s", url, dest)
     s3.Object(url.netloc, url.path.lstrip("/")).download_file(dest)
     return "file://" + dest
 
@@ -92,6 +93,7 @@ def process_file_url(url, dest_base, strip):
     dest_path = url.path.lstrip("/").split("/", strip)[strip:]
     dest_base = urlparse(dest_base)
     dest = os.path.join(dest_base.path.lstrip("/"), *dest_path)
+    logger.info("Uploading %s to s3://%s/%s", url, dest_base.netloc, dest)
     s3.Object(dest_base.netloc, dest).upload_file(url.path)
     return "s3://" + os.path.join(dest_base.netloc, dest)
 
