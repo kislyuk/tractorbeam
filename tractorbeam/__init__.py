@@ -22,6 +22,7 @@ s3 = boto3.resource("s3")
 
 def register_parser(function, **add_parser_args):
     subparser = subparsers.add_parser(function.__name__, **add_parser_args)
+    subparser.add_argument("--strip-components", type=int, default=0)
     subparser.set_defaults(entry_point=function)
     if subparser.description is None:
         subparser.description = add_parser_args.get("help", function.__doc__)
@@ -71,12 +72,12 @@ def visit(node, prefix, transform, **kwargs):
             node = transform(node, **kwargs)
     return node
 
-def process_s3_url(url, strip=0):
+def process_s3_url(url, strip):
     url = urlparse(url)
-    path = url.path.lstrip("/")
-    dest = os.path.join(os.getcwd(), path)
+    path = url.path.lstrip("/").split("/", strip)[strip:]
+    dest = os.path.join(os.getcwd(), *path)
     os.makedirs(os.path.dirname(dest), exist_ok=True)
-    s3.Object(url.netloc, path).download_file(dest)
+    s3.Object(url.netloc, url.path.lstrip("/")).download_file(dest)
     return "file://" + dest
 
 def pull(args):
@@ -84,12 +85,12 @@ def pull(args):
     return visit(data, "s3://", process_s3_url, strip=args.strip_components)
 
 parser_pull = register_parser(pull)
-parser_pull.add_argument("--strip-components", type=int)
 
-def process_file_url(url, dest_base, strip=0):
+def process_file_url(url, dest_base, strip):
     url = urlparse(url)
+    dest_path = url.path.lstrip("/").split("/", strip)[strip:]
     dest_base = urlparse(dest_base)
-    dest = os.path.join(dest_base.path.lstrip("/"), url.path.lstrip("/"))
+    dest = os.path.join(dest_base.path.lstrip("/"), *dest_path)
     s3.Object(dest_base.netloc, dest).upload_file(url.path)
     return "s3://" + os.path.join(dest_base.netloc, dest)
 
@@ -99,4 +100,3 @@ def push(args):
 
 parser_push = register_parser(push)
 parser_push.add_argument("dest_s3_base_url")
-parser_push.add_argument("--strip-components", type=int)
