@@ -10,6 +10,8 @@ from botocore.exceptions import NoRegionError
 from tweak import Config
 from .compat import str, urlparse
 
+logging.basicConfig(level=logging.ERROR)
+
 logger = logging.getLogger(__name__)
 config = Config("tractorbeam")
 parser = argparse.ArgumentParser(description=__doc__)
