@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="tractorbeam",
-    version="0.1.2",
+    version="0.1.3",
     url="https://github.com/kislyuk/tractorbeam",
     license="Apache Software License",
     author="Andrey Kislyuk",
