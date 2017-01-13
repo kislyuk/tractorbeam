@@ -79,12 +79,12 @@ def process_s3_url(url, strip=0):
     s3.Object(url.netloc, path).download_file(dest)
     return "file://" + dest
 
-def down(args):
+def pull(args):
     data = json.load(sys.stdin)
     return visit(data, "s3://", process_s3_url, strip=args.strip_components)
 
-parser_down = register_parser(down)
-parser_down.add_argument("--strip-components", type=int)
+parser_pull = register_parser(pull)
+parser_pull.add_argument("--strip-components", type=int)
 
 def process_file_url(url, dest_base, strip=0):
     url = urlparse(url)
@@ -93,10 +93,10 @@ def process_file_url(url, dest_base, strip=0):
     s3.Object(dest_base.netloc, dest).upload_file(url.path)
     return "s3://" + os.path.join(dest_base.netloc, dest)
 
-def up(args):
+def push(args):
     data = json.load(sys.stdin)
     return visit(data, "file://", process_file_url, dest_base=args.dest_s3_base_url, strip=args.strip_components)
 
-parser_up = register_parser(up)
-parser_up.add_argument("dest_s3_base_url")
-parser_up.add_argument("--strip-components", type=int)
+parser_push = register_parser(push)
+parser_push.add_argument("dest_s3_base_url")
+parser_push.add_argument("--strip-components", type=int)

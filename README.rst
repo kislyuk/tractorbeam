@@ -14,10 +14,10 @@ Use ``aws configure`` to set up your AWS command line environment.
 
 .. code-block:: bash
 
-    $ echo '{"input1": "s3://mybucket/path/to/myfile.bam"}' | tractor down --strip-components 1
+    $ echo '{"input1": "s3://mybucket/path/to/myfile.bam"}' | tractor pull --strip-components 1
     {"input1": "file:///cwd/path/to/myfile.bam"}
     
-    $ echo '{"input2": "file:///path/to/myfile.bam"}' | tractor up s3://mybucket/prefix/ --strip-components 0
+    $ echo '{"input2": "file:///path/to/myfile.bam"}' | tractor push s3://mybucket/prefix/ --strip-components 0
     {"input2": "s3:///mybucket/prefix/path/to/myfile.bam"}
 
 Authors
