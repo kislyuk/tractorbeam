@@ -18,7 +18,7 @@ Use ``aws configure`` to set up your AWS command line environment.
     {"input1": "file:///cwd/path/to/myfile.bam"}
     
     $ echo '{"input2": "file:///path/to/myfile.bam"}' | tractor push s3://mybucket/prefix/ --strip-components 0
-    {"input2": "s3:///mybucket/prefix/path/to/myfile.bam"}
+    {"input2": "s3://mybucket/prefix/path/to/myfile.bam"}
 
 Authors
 -------
