@@ -18,6 +18,8 @@ parser.add_argument("--log-level", type=logger.setLevel,
                     default=logging.WARN)
 subparsers = parser.add_subparsers()
 
+s3 = boto3.resource("s3")
+
 def register_parser(function, **add_parser_args):
     subparser = subparsers.add_parser(function.__name__, **add_parser_args)
     subparser.set_defaults(entry_point=function)
@@ -68,8 +70,6 @@ def visit(node, prefix, transform, **kwargs):
         if isinstance(node, str) and node.startswith(prefix):
             node = transform(node, **kwargs)
     return node
-
-s3 = boto3.resource("s3")
 
 def process_s3_url(url, strip=0):
     url = urlparse(url)
