@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--log-level", type=logger.setLevel,
                     help=str([logging.getLevelName(i) for i in range(0, 60, 10)]),
                     default=logging.WARN)
+parser.set_defaults(entry_point=lambda args: parser.print_help())
 subparsers = parser.add_subparsers()
 
 s3 = boto3.resource("s3")
@@ -95,6 +96,8 @@ def process_file_url(url, dest_base, strip):
     return "s3://" + os.path.join(dest_base.netloc, dest)
 
 def push(args):
+    if not args.dest_s3_base_url.startswith("s3://"):
+        parser.error('Expected S3 destination URL "{}" to start with "s3://"'.format(args.dest_s3_base_url))
     data = json.load(sys.stdin)
     return visit(data, "file://", process_file_url, dest_base=args.dest_s3_base_url, strip=args.strip_components)
 
