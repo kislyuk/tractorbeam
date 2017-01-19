@@ -1,5 +1,9 @@
 Tractor Beam: File I/O staging for JSON documents with Amazon S3 URLs
 =====================================================================
+Tractor Beam is a utility to download S3 URLs using the AWS CLI. If you have structured input (JSON) for your application, and
+that input contains references to files on S3, and your application expects these files to be on a local POSIX path, then you
+can pipe your JSON through ``tractor pull`` to download these URLs and rewrite the JSON to contain ``file://`` URLs instead.
+You can also do the reverse with ``tractor push``.
 
 Installation
 ------------
